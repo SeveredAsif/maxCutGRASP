@@ -13,6 +13,12 @@ public:
         adj = new list<int>[V];
         adj_weights = new list<int>[V];
     }
+    list<int> * getEdge(){
+        return this->adj;
+    }
+    list<int> * getWeights(){
+        return this->adj_weights;
+    }
     void addEdge(int u, int v, int weight)
     {
         adj[u].push_back(v);              // Add v to u’s list.
