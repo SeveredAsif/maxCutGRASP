@@ -1,12 +1,13 @@
 // 9:41 am-10:02 pm (not ended - 19 min)
 //10:18 - 10:35 - 17 min
-//checking : 10:36 - 
+//checking : 10:36 - 11:04 - 28 min 
+//total 1 hr 4 min 
 #include <set>
 #include <list>
 #include <utility>
 #include "graph.hpp"
 using namespace std;
-pair<set<int>,set<int>> greedyMaxCut(Graph g, int V)
+pair<set<int>,set<int>> greedyMaxCut(Graph &g, int V)
 {
     pair<set<int>,set<int>>ans;
     // initializing partitions

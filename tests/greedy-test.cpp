@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cassert>
-#include "greedy_max_cut.hpp"
+#include "../greedy_max_cut.hpp"
 
 void test_two_node()
 {

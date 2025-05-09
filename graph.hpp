@@ -13,6 +13,9 @@ public:
         adj = new list<int>[V];
         adj_weights = new list<int>[V];
     }
+    int getSize(){
+        return V;
+    }
     list<int> * getEdge(){
         return this->adj;
     }
