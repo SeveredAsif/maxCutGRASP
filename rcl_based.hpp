@@ -2,11 +2,14 @@
 // 11:52 pm - 12:35 - (paused)
 // 9:59 am (next day) - 11:07
 // 11:07 - 12:43 - fixing - 1.5 hours
+
+#ifndef RCL_BASED_HPP
+#define RCL_BASED_HPP
 #include "graph.hpp"
 #include <set>
 #include <algorithm>
 #include <vector>
-using namespace std::chrono;
+
 
 // source: https://stackoverflow.com/questions/3052788/how-to-select-a-random-element-in-stdset
 template <typename S>
@@ -20,8 +23,8 @@ auto select_random(const S &s, size_t n)
 
 void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adjWeights, vector<bool> &U, int V, int alpha, int &counter)
 {
-    auto t_start = high_resolution_clock::now();
-    auto t_sigma_start = high_resolution_clock::now();
+    //auto t_start = high_resolution_clock::now();
+    //auto t_sigma_start = high_resolution_clock::now();
     vector<int> sigmaX(V, 0);
     vector<int> sigmaY(V, 0);
     for (int v = 0; v < V; ++v)
@@ -47,12 +50,12 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
         }
     }
     // wmin and wmax
-    auto t_sigma_end = high_resolution_clock::now();
+    //auto t_sigma_end = high_resolution_clock::now();
     // cout << "Time for sigma computation: "
     //     << duration<double>(t_sigma_end - t_sigma_start).count() << "s\n";
 
     // wmin and wmax computation
-    auto t_minmax_start = high_resolution_clock::now();
+    //auto t_minmax_start = high_resolution_clock::now();
 
     int wmin = +1e9, wmax = -1e9;
     for (int v = 0; v < V; ++v)
@@ -75,12 +78,12 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
     // double miu = wmin + alpha * (wmax - wmin);
     // calculate greedyValue
     // Build RCL as a vector for O(1) random access
-    auto t_minmax_end = high_resolution_clock::now();
+    //auto t_minmax_end = high_resolution_clock::now();
     // cout << "Time for wmin/wmax computation: "
     //     << duration<double>(t_minmax_end - t_minmax_start).count() << "s\n";
 
     // build RCL vector
-    auto t_rcl_start = high_resolution_clock::now();
+    //auto t_rcl_start = high_resolution_clock::now();
     vector<int> rclVec;
     for (int v = 0; v < V; ++v)
     {
@@ -89,7 +92,7 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
             rclVec.push_back(v);
         }
     }
-    auto t_rcl_end = high_resolution_clock::now();
+    //auto t_rcl_end = high_resolution_clock::now();
     // cout << "Time for RCL build: "
     //      << duration<double>(t_rcl_end - t_rcl_start).count() << "s\n";
     if (rclVec.empty())
@@ -107,7 +110,7 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
     // }
 
     // choose one of the elements from the rcl set
-    auto t_choose_start = high_resolution_clock::now();
+    //auto t_choose_start = high_resolution_clock::now();
     int choose = rand() % rclVec.size();
     int chosenItem = rclVec[choose];
 
@@ -123,11 +126,11 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
 
     U[chosenItem] = false;
     counter--;
-    auto t_choose_end = high_resolution_clock::now();
+    //auto t_choose_end = high_resolution_clock::now();
     // cout << "Time for selection and update: "
     //     << duration<double>(t_choose_end - t_choose_start).count() << "s\n";
 
-    auto t_end = high_resolution_clock::now();
+    //auto t_end = high_resolution_clock::now();
     // cout << "Total iteration time: "
     //     << duration<double>(t_end - t_start).count() << "s\n";
     // cout << "------------------------------------\n";
@@ -192,3 +195,5 @@ pair<vector<bool>, vector<bool>> rcl_algorithm(Graph &g, int V, int alpha)
     ans = {X, Y};
     return ans;
 }
+
+#endif

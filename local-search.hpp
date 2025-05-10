@@ -3,6 +3,8 @@
 // 2:48 - 3: 14
 // checking 3:15 - 4:36 - 1 hr 15 min
 // set to vector - 7:22 - 7:53 - 30 min
+#ifndef LOCAL_SEARCH_HPP
+#define LOCAL_SEARCH_HPP
 #include <set>
 #include <vector>
 #include "graph.hpp"
@@ -124,3 +126,5 @@ pair<vector<bool>, vector<bool>> local_search(vector<bool> &X, vector<bool> &Y, 
     // now i have the refined S and S' cut
     return {X, Y};
 }
+
+#endif

@@ -8,7 +8,7 @@ using namespace chrono;
 
 int main()
 {
-    ofstream outputFile("output50Iterations(TimeLogging).txt");
+    ofstream outputFile("output50Iterations(alpha=0.5,rcl_based).txt");
 
     // Record the ultimate start time
     auto ultimate_start = system_clock::now();
