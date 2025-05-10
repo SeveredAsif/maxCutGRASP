@@ -1,16 +1,12 @@
 #include <iostream>
 #include <vector>
 #include <list>
-#include <set>
 #include <chrono>
 #include <random>
 #include <algorithm>
 #include <cassert>
 #include <iomanip>
 #include "../grasp.hpp"
-
-// Include the implementation from the previous artifact
-// (Assuming it's already included or compiled together)
 
 // Utility function to generate a random graph
 Graph generate_random_graph(int vertices, double density, int min_weight, int max_weight) {
@@ -32,6 +28,26 @@ Graph generate_random_graph(int vertices, double density, int min_weight, int ma
     return g;
 }
 
+// Utility function to convert set to vector<bool>
+std::vector<bool> set_to_vectorbool(const std::set<int>& s, int size) {
+    std::vector<bool> result(size, false);
+    for (int elem : s) {
+        result[elem] = true;
+    }
+    return result;
+}
+
+// Utility function to convert vector<bool> to set for printing
+std::set<int> vectorbool_to_set(const std::vector<bool>& v) {
+    std::set<int> result;
+    for (size_t i = 0; i < v.size(); ++i) {
+        if (v[i]) {
+            result.insert(i);
+        }
+    }
+    return result;
+}
+
 // Test on a small known graph
 void test_small_known_graph() {
     std::cout << "\n=== Testing on small known graph ===\n" << std::endl;
@@ -46,28 +62,36 @@ void test_small_known_graph() {
     g.addEdge(2, 3, 1);
     
     // Initial partition
-    std::set<int> X = {0, 1};
-    std::set<int> Y = {2, 3};
+    std::vector<bool> X(4, false);
+    std::vector<bool> Y(4, false);
+    X[0] = true;
+    X[1] = true;
+    Y[2] = true;
+    Y[3] = true;
     
     // Calculate initial cut weight
-    int initial_weight = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights());
+    int initial_weight = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights(), g.getSize());
     std::cout << "Initial partition: S = {0, 1}, S' = {2, 3}" << std::endl;
     std::cout << "Initial cut weight: " << initial_weight << std::endl;
     
     // Apply local search
     auto start_time = std::chrono::high_resolution_clock::now();
-    std::pair<std::set<int>, std::set<int>> result = local_search(X, Y, g);
+    std::pair<std::vector<bool>, std::vector<bool>> result = local_search(X, Y, g);
     auto end_time = std::chrono::high_resolution_clock::now();
     
-    std::set<int> final_X = result.first;
-    std::set<int> final_Y = result.second;
+    std::vector<bool> final_X = result.first;
+    std::vector<bool> final_Y = result.second;
     
-    int final_weight = calculate_cut_weight(final_X, final_Y, g.getEdge(), g.getWeights());
+    int final_weight = calculate_cut_weight(final_X, final_Y, g.getEdge(), g.getWeights(), g.getSize());
+    
+    // Convert to sets for printing
+    std::set<int> final_X_set = vectorbool_to_set(final_X);
+    std::set<int> final_Y_set = vectorbool_to_set(final_Y);
     
     std::cout << "Final partition: S = {";
-    for (int v : final_X) std::cout << " " << v;
+    for (int v : final_X_set) std::cout << " " << v;
     std::cout << " }, S' = {";
-    for (int v : final_Y) std::cout << " " << v;
+    for (int v : final_Y_set) std::cout << " " << v;
     std::cout << " }" << std::endl;
     
     std::cout << "Final cut weight: " << final_weight << std::endl;
@@ -99,13 +123,13 @@ void test_rcl_alpha_variations() {
     for (double alpha : alpha_values) {
         // Construction phase timing
         auto start_construction = std::chrono::high_resolution_clock::now();
-        std::pair<std::set<int>, std::set<int>> p = rcl_algorithm(g, vertices, alpha);
+        std::pair<std::vector<bool>, std::vector<bool>> p = rcl_algorithm(g, vertices, alpha);
         auto end_construction = std::chrono::high_resolution_clock::now();
         
-        std::set<int> X = p.first;
-        std::set<int> Y = p.second;
+        std::vector<bool> X = p.first;
+        std::vector<bool> Y = p.second;
         
-        int initial_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights());
+        int initial_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights(), vertices);
         
         // Local search phase timing
         auto start_local_search = std::chrono::high_resolution_clock::now();
@@ -115,7 +139,7 @@ void test_rcl_alpha_variations() {
         X = p.first;
         Y = p.second;
         
-        int final_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights());
+        int final_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights(), vertices);
         
         std::chrono::duration<double, std::milli> construction_time = end_construction - start_construction;
         std::chrono::duration<double, std::milli> local_search_time = end_local_search - start_local_search;
@@ -178,11 +202,11 @@ void test_large_graphs() {
         
         // Test single iteration of construction + local search
         auto start_construction = std::chrono::high_resolution_clock::now();
-        std::pair<std::set<int>, std::set<int>> p = rcl_algorithm(g, size, 0.5);
+        std::pair<std::vector<bool>, std::vector<bool>> p = rcl_algorithm(g, size, 0.5);
         auto end_construction = std::chrono::high_resolution_clock::now();
         
-        std::set<int> X = p.first;
-        std::set<int> Y = p.second;
+        std::vector<bool> X = p.first;
+        std::vector<bool> Y = p.second;
         
         auto start_local_search = std::chrono::high_resolution_clock::now();
         p = local_search(X, Y, g);
@@ -191,7 +215,7 @@ void test_large_graphs() {
         X = p.first;
         Y = p.second;
         
-        int local_search_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights());
+        int local_search_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights(), size);
         std::chrono::duration<double, std::milli> local_search_time = end_local_search - start_local_search;
         
         // Test GRASP with 3 iterations
@@ -216,30 +240,31 @@ void compare_with_random() {
     Graph g = generate_random_graph(vertices, 0.5, 1, 10);
     
     // Create a random partition
-    std::set<int> X, Y;
+    std::vector<bool> X(vertices, false);
+    std::vector<bool> Y(vertices, false);
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, 1);
     
     for (int i = 0; i < vertices; ++i) {
         if (dis(gen) == 0) {
-            X.insert(i);
+            X[i] = true;
         } else {
-            Y.insert(i);
+            Y[i] = true;
         }
     }
     
-    int random_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights());
+    int random_cut = calculate_cut_weight(X, Y, g.getEdge(), g.getWeights(), vertices);
     
     // Apply local search
     auto start_time = std::chrono::high_resolution_clock::now();
-    std::pair<std::set<int>, std::set<int>> result = local_search(X, Y, g);
+    std::pair<std::vector<bool>, std::vector<bool>> result = local_search(X, Y, g);
     auto end_time = std::chrono::high_resolution_clock::now();
     
-    std::set<int> final_X = result.first;
-    std::set<int> final_Y = result.second;
+    std::vector<bool> final_X = result.first;
+    std::vector<bool> final_Y = result.second;
     
-    int improved_cut = calculate_cut_weight(final_X, final_Y, g.getEdge(), g.getWeights());
+    int improved_cut = calculate_cut_weight(final_X, final_Y, g.getEdge(), g.getWeights(), vertices);
     
     std::chrono::duration<double, std::milli> duration = end_time - start_time;
     

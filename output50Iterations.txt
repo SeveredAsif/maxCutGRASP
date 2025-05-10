@@ -1,0 +1,18 @@
+Start Time: 20:32:12
+Graph 1: Solution = 11421, Time = 169.341 seconds
+Graph 2: Solution = 11444, Time = 134.988 seconds
+Graph 3: Solution = 11458, Time = 89.107 seconds
+Graph 4: Solution = 11463, Time = 87.807 seconds
+Graph 5: Solution = 11474, Time = 90.05 seconds
+Graph 6: Solution = 1987, Time = 90.279 seconds
+Graph 7: Solution = 1810, Time = 104.987 seconds
+Graph 8: Solution = 1795, Time = 154.089 seconds
+Graph 9: Solution = 1865, Time = 135.882 seconds
+Graph 10: Solution = 1803, Time = 153.157 seconds
+Graph 11: Solution = 462, Time = 16.97 seconds
+Graph 12: Solution = 454, Time = 17.003 seconds
+Graph 13: Solution = 482, Time = 16.938 seconds
+Graph 14: Solution = 2975, Time = 39.524 seconds
+Graph 15: Solution = 2948, Time = 41.521 seconds
+Graph 16: Solution = 2955, Time = 40.502 seconds
+Graph 17: Solution = 2946, Time = 41.79 seconds

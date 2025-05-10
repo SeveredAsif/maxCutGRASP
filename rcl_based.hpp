@@ -1,7 +1,7 @@
 // iterate over V' and calculate the greedy value and save to m
 // 11:52 pm - 12:35 - (paused)
 // 9:59 am (next day) - 11:07
-//11:07 - 12:43 - fixing - 1.5 hours
+// 11:07 - 12:43 - fixing - 1.5 hours
 #include "graph.hpp"
 #include <set>
 #include <algorithm>
@@ -17,25 +17,25 @@ auto select_random(const S &s, size_t n)
     return it;
 }
 
-void rclBased(set<int> &X, set<int> &Y, list<int> *&adj, list<int> *&adjWeights, set<int> &U, int V, int alpha)
+void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adjWeights, vector<bool> &U, int V, int alpha, int &counter)
 {
-    vector<int> sigmaX(V);
-    vector<int> sigmaY(V);
-    for (auto v : U)
+    vector<int> sigmaX(V, 0);
+    vector<int> sigmaY(V, 0);
+    for (int v = 0; v < V; ++v)
     {
-        sigmaX[v] = 0;
-        sigmaY[v] = 0;
+        if (!U[v])
+            continue; // Skip vertices not in U
         auto itr = adj[v].begin();
         auto ptr = adjWeights[v].begin();
         while (itr != adj[v].end() && ptr != adjWeights[v].end())
         {
-            if (Y.find(*itr) != Y.end())
+            if (Y[*itr])
             {
                 sigmaY[v] += (*ptr);
             }
 
             // computing sigmaY if the element is in X
-            if (X.find(*itr) != X.end())
+            if (X[*itr])
             {
                 sigmaX[v] += (*ptr);
             }
@@ -46,8 +46,10 @@ void rclBased(set<int> &X, set<int> &Y, list<int> *&adj, list<int> *&adjWeights,
     // wmin and wmax
 
     int wmin = +1e9, wmax = -1e9;
-    for (int v : U)
+    for (int v = 0; v < V; ++v)
     {
+        if (!U[v])
+            continue; // Skip vertices not in U
         int best = max(sigmaX[v], sigmaY[v]);
         wmin = min(wmin, best);
         wmax = max(wmax, best);
@@ -63,41 +65,56 @@ void rclBased(set<int> &X, set<int> &Y, list<int> *&adj, list<int> *&adjWeights,
 
     // double miu = wmin + alpha * (wmax - wmin);
     // calculate greedyValue
-    set<int> rclSET;
-    set<int> secondSet;
-
-    for (auto i : U)
+    // Build RCL as a vector for O(1) random access
+    vector<int> rclVec;
+    for (int v = 0; v < V; ++v)
     {
-        int greedyVal = max(sigmaX[i], sigmaY[i]);
-        if (greedyVal >= mu)
+        if (U[v] && max(sigmaX[v], sigmaY[v]) >= mu)
         {
-            rclSET.insert(i);
+            rclVec.push_back(v);
         }
     }
 
+    if (rclVec.empty())
+        return;
+
+    // set<int> rclSET;
+
+    // for (auto i : U)
+    // {
+    //     int greedyVal = max(sigmaX[i], sigmaY[i]);
+    //     if (greedyVal >= mu)
+    //     {
+    //         rclSET.insert(i);
+    //     }
+    // }
+
     // choose one of the elements from the rcl set
-    int choose = rand() % rclSET.size();
-    int chosenItem = *select_random(rclSET, choose);
+    int choose = rand() % rclVec.size();
+    int chosenItem = rclVec[choose];
 
     // compare this chosenItem value in sigmaX and sigmaY
     if (sigmaX[chosenItem] >= sigmaY[chosenItem])
     {
-        Y.insert(chosenItem);
+        Y[chosenItem] = true;
     }
     else
     {
-        X.insert(chosenItem);
+        X[chosenItem] = true;
     }
 
-    U.erase(chosenItem);
+    U[chosenItem] = false;
+    counter--;
 }
 
-pair<set<int>, set<int>> rcl_algorithm(Graph &g, int V, int alpha)
+pair<vector<bool>, vector<bool>> rcl_algorithm(Graph &g, int V, int alpha)
 {
-    pair<set<int>, set<int>> ans;
+    pair<vector<bool>, vector<bool>> ans;
     // find heaviest greedily, and put it on X , Y partition first
-    set<int> X = {};
-    set<int> Y = {};
+    // set<int> X = {};
+    // set<int> Y = {};
+    vector<bool> X(V, false);
+    vector<bool> Y(V, false);
     // find edge u,v with maximum weight
     list<int> *adj = g.getEdge();
     list<int> *adjWeights = g.getWeights();
@@ -122,23 +139,29 @@ pair<set<int>, set<int>> rcl_algorithm(Graph &g, int V, int alpha)
     }
     // now i have u,v as max weighted edge
     // insert them as the first elements in set
-    X.insert(u);
-    Y.insert(v);
+    // X.insert(u);
+    // Y.insert(v);
+    X[u] = true;
+    Y[v] = true;
 
     // initialize U
-    set<int> U = {};
+    // set<int> U = {};
+    vector<bool> U(V, false);
+    int U_true_counter = 0;
     for (int i = 0; i < V; i++)
     {
         // if i is not u, i is not v, push it to set U
         if (i != u && i != v)
         {
-            U.insert(i);
+            // U.insert(i);
+            U[i] = true;
+            U_true_counter++;
         }
     }
 
-    while (!U.empty())
+    while (U_true_counter > 0)
     {
-        rclBased(X, Y, adj, adjWeights, U, V, alpha);
+        rclBased(X, Y, adj, adjWeights, U, V, alpha, U_true_counter);
     }
     ans = {X, Y};
     return ans;
