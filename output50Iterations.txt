@@ -16,3 +16,7 @@ Graph 14: Solution = 2975, Time = 39.524 seconds
 Graph 15: Solution = 2948, Time = 41.521 seconds
 Graph 16: Solution = 2955, Time = 40.502 seconds
 Graph 17: Solution = 2946, Time = 41.79 seconds
+Graph 18: Solution = 889, Time = 43.513 seconds
+Graph 19: Solution = 788, Time = 43.646 seconds
+Graph 20: Solution = 835, Time = 43.202 seconds
+Graph 21: Solution = 823, Time = 43.973 seconds
