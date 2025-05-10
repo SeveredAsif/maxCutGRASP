@@ -1,3 +1,4 @@
+#pragma once
 #include <list>
 using namespace std;
 class Graph
@@ -13,13 +14,16 @@ public:
         adj = new list<int>[V];
         adj_weights = new list<int>[V];
     }
-    int getSize(){
+    int getSize()
+    {
         return V;
     }
-    list<int> * getEdge(){
+    list<int> *getEdge()
+    {
         return this->adj;
     }
-    list<int> * getWeights(){
+    list<int> *getWeights()
+    {
         return this->adj_weights;
     }
     void addEdge(int u, int v, int weight)
@@ -30,18 +34,22 @@ public:
         adj[v].push_back(u);              // Add u to v’s list.
         adj_weights[v].push_back(weight); // Add the weight of the path as well.
     }
-    void print() {
-        for (int i = 0; i < V; i++) {
-            cout << endl << i << ": ";
-            
-            auto it = adj[i].begin();             // iterator for adjacency list
-            auto wt = adj_weights[i].begin();     // iterator for weight list
-            
-            while (it != adj[i].end() && wt != adj_weights[i].end()) {
+    void print()
+    {
+        for (int i = 0; i < V; i++)
+        {
+            cout << endl
+                 << i << ": ";
+
+            auto it = adj[i].begin();         // iterator for adjacency list
+            auto wt = adj_weights[i].begin(); // iterator for weight list
+
+            while (it != adj[i].end() && wt != adj_weights[i].end())
+            {
                 cout << "(" << *it << ", " << *wt << ") ";
                 ++it;
                 ++wt;
             }
         }
-    } 
+    }
 };

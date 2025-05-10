@@ -1,7 +1,7 @@
 // 12:46 pm - 1:22 (BREAK);
 // 2:09-2:10 (pause)
 // 2:48 - 3: 14
-// checking 3:15 -
+// checking 3:15 - 4:36 - 1 hr 15 min
 #include <set>
 #include <vector>
 #include "graph.hpp"
