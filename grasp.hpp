@@ -37,7 +37,7 @@ int calculate_cut_weight(const vector<bool> &X, const vector<bool> &Y, list<int>
 }
 
 // Forward declarations
-pair<vector<bool>, vector<bool>> local_search(vector<bool> &X, vector<bool> &Y, Graph &g);
+pair<pair<vector<bool>,vector<bool>>,int> local_search(vector<bool> &X, vector<bool> &Y, Graph &g);
 
 int grasp(int iterations, Graph &g)
 {
@@ -55,10 +55,10 @@ int grasp(int iterations, Graph &g)
         vector<bool> X = p.first;
         vector<bool> Y = p.second;
         //auto t3 = high_resolution_clock::now();
-        p = local_search(X, Y, g);
+        pair<pair<vector<bool>,vector<bool>>,int>localResult = local_search(X, Y, g);
         //auto t4 = high_resolution_clock::now();
         if (i == 0)
-            bestPartition = p;
+            bestPartition = localResult.first;
 
         int w_x = calculate_cut_weight(X, Y, adj, adjWeights, size);
 
@@ -72,6 +72,7 @@ int grasp(int iterations, Graph &g)
         if (w_x > best_Wx)
         {
             best_Wx = w_x;
+            bestPartition = localResult.first;
         }
     }
     return best_Wx;

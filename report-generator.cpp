@@ -8,8 +8,9 @@
 #include "graph.hpp"
 #include "randomized.hpp"     // double randomized(Graph&, int)
 #include "greedy_max_cut.hpp" // pair<vector<bool>,vector<bool>> greedyMaxCut(Graph&, int)
-#include "local-search.hpp"   // pair<vector<bool>,vector<bool>> local_search(vector<bool>&, vector<bool>&, Graph&)
+#include "local-search.hpp"   // pair<vector<bool>,vector<bool>> local_search(vector<bool>&, ve\ctor<bool>&, Graph&)
 #include "grasp.hpp"          // int grasp(int, Graph&)      // int calculate_cut_weight(...)
+#include "semi_greedy.hpp"
 
 using namespace std;
 using Clock = chrono::high_resolution_clock;
@@ -30,12 +31,13 @@ int main()
         7027, 7022, 7020, 6000, 6000, 5988};
 
     constexpr int RAND_ITERS = 1;   // number of randomized runs
-    constexpr int LOCAL_ITERS = 5;  // multi-restart local-search
-    constexpr int GRASP_ITERS = 25; // GRASP iterations
+    // constexpr int LOCAL_ITERS = 5;  // multi-restart local-search
+    constexpr int GRASP_ITERS = 5; // GRASP iterations
+    int localiter = 0;
 
-    ofstream csv("2105131report.csv");
+    ofstream csv("2105131reportSemiGreedyAdded.csv");
     csv << "Name,|V|,|E|,"
-           "Rand1,Greedy1,Local1_Best,Local1_Iter,GRASP_Best,GRASP_Iter,KnownBest\n";
+           "Rand1,Greedy1,SemiGreedy,Local1_Best,Local1_Iter,GRASP_Best,GRASP_Iter,KnownBest\n";
 
     for (int idx = 0; idx < (int)names.size(); ++idx)
     {
@@ -73,21 +75,29 @@ int main()
         auto greedyTime = chrono::duration_cast<ms>(t3 - t2).count();
         cout << id << ",Greedy," << greedyTime << "ms\n";
 
+        //semi-greedy
+        auto tsemiStart = Clock::now();
+        auto semigreedyVal = semiGreedy(g);
+        auto tsemiEnd = Clock::now();
+        auto semigreedyTime = chrono::duration_cast<ms>(tsemiEnd - tsemiStart).count();
+        cout << id << ",SemiGreedy," << semigreedyTime << "ms\n";
+
         // 3) Simple Local (multi-restart)
         auto t4 = Clock::now();
         int bestLocalVal = numeric_limits<int>::min();
         int bestLocalIter = -1;
 
-            auto startP = greedyMaxCut(g, n);
-            auto localP = local_search(startP.first,
-                                       startP.second,
-                                       g);
-             bestLocalVal = calculate_cut_weight(
-                localP.first,
-                localP.second,
-                g.getEdge(),
-                g.getWeights(),
-                n);
+        auto startP = greedyMaxCut(g, n);
+        auto localP = local_search(startP.first,
+                                   startP.second,
+                                   g);
+        localiter = localP.second;
+        bestLocalVal = calculate_cut_weight(
+            localP.first.first,
+            localP.first.second,
+            g.getEdge(),
+            g.getWeights(),
+            n);
 
         auto t5 = Clock::now();
         auto localTime = chrono::duration_cast<ms>(t5 - t4).count();
@@ -110,8 +120,9 @@ int main()
             << m << ","
             << randVal << ","
             << greedyVal << ","
+            << semigreedyVal << ","
             << bestLocalVal << ","
-            << LOCAL_ITERS << ","
+            << localiter << ","
             << bestGraspVal << ","
             << GRASP_ITERS << ","
             << known[idx] << "\n";

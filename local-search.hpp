@@ -35,7 +35,7 @@ pair<int, int> calculateSigma(int v, list<int> *&adj, list<int> *&adjWeights, ve
     return {inSum, outSum};
 }
 
-pair<vector<bool>, vector<bool>> local_search(vector<bool> &X, vector<bool> &Y, Graph &g)
+pair<pair<vector<bool>,vector<bool>>,int> local_search(vector<bool> &X, vector<bool> &Y, Graph &g)
 {
     // vector<bool> S(g.getSize(), false);
     // vector<bool> S_p(g.getSize(), false);
@@ -51,10 +51,12 @@ pair<vector<bool>, vector<bool>> local_search(vector<bool> &X, vector<bool> &Y, 
 
     list<int> *adj = g.getEdge();
     list<int> *adjWeights = g.getWeights();
+    int count = 0;
 
     // repeat until stuck in local optima
     while (1)
     {
+        count++;
         int bestV = -1;
         int max = 0;
         bool is_S = true;
@@ -124,7 +126,7 @@ pair<vector<bool>, vector<bool>> local_search(vector<bool> &X, vector<bool> &Y, 
     }
 
     // now i have the refined S and S' cut
-    return {X, Y};
+    return {{X, Y},count};
 }
 
 #endif
