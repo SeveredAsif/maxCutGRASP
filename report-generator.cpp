@@ -1,105 +1,114 @@
+// reportGenerator.cpp
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
-#include <utility>
+#include <limits>
 #include "graph.hpp"
 #include "randomized.hpp"     // double randomized(Graph&, int)
-#include "greedy_max_cut.hpp" // pair<set<int>,set<int>> greedyMaxCut(Graph&, int)
-#include "local-search.hpp"   // pair<set<int>,set<int>> local_search(set<int>&, set<int>&, Graph&)
-#include "grasp.hpp"          // int grasp(int, Graph&)
+#include "greedy_max_cut.hpp" // pair<vector<bool>,vector<bool>> greedyMaxCut(Graph&, int)
+#include "local-search.hpp"   // pair<vector<bool>,vector<bool>> local_search(vector<bool>&, vector<bool>&, Graph&)
+#include "grasp.hpp"          // int grasp(int, Graph&)      // int calculate_cut_weight(...)
 
 using namespace std;
 
-// Forward declaring utility to compute cut-weight from partition
-// int calculate_cut_weight(const vector<bool> &X, const vector<bool> &Y, list<int> *adj, list<int> *adjWeights, int V)
-// {
-//     int total_weight = 0;
-
-//     for (int u = 0; u < V; u++)
-//     {
-//         if (!X[u])
-//             continue; // Only process vertices in X
-//         auto itr = adj[u].begin();
-//         auto wtr = adjWeights[u].begin();
-
-//         while (itr != adj[u].end() && wtr != adjWeights[u].end())
-//         {
-//             int v = *itr;
-//             int weight = *wtr;
-
-//             if (Y[*itr])
-//             {
-//                 total_weight += weight;
-//             }
-
-//             ++itr;
-//             ++wtr;
-//         }
-//     }
-
-//     return total_weight;
-// }
-
 int main()
 {
-    // Graph identifiers and known best solutions
-    vector<string> names = {"G1" /*, "G2", "G3", "G11", "G12", "G13",
-                             "G21", "G22", "G23", "G31", "G32", "G33",
-                             "G41", "G42", "G43", "G51", "G52", "G53",
-                             "G61", "G62", "G63", "G71", "G72", "G73"*/
-    };
-    vector<int> knownBest = {12078 /*,14123, 7027, /* ... fill for 24 graphs ...*/};
+    vector<string> names = {
+        "G1", "G2", "G3", "G11", "G12", "G13",
+        "G14", "G15", "G16", "G22", "G23", "G24",
+        "G32", "G33", "G34", "G35", "G36", "G37",
+        "G43", "G44", "G45", "G48", "G49", "G50"};
+
+    vector<int> known = {
+        12078, 12084, 12077, 627, 621, 645,
+        3187, 3169, 3172, 14123, 14129, 14131,
+        1560, 1537, 1541, 8000, 7996, 8009,
+        7027, 7022, 7020, 6000, 6000, 5988};
+
+    constexpr int RAND_ITERS = 1;   // as before
+    constexpr int LOCAL_ITERS = 10; // e.g. 10 restarts of local
+    constexpr int GRASP_ITERS = 5;  // e.g. 5 GRASP iterations
 
     ofstream csv("report.csv");
-    // Header
-    csv << "Name,|V|,|E|,Randomized-1,Greedy-1,Local-1,GRASP-1,KnownBest\n";
+    csv << "Name,|V|,|E|,Rand1,Greedy1,Local1_Best,Local1_Iter,GRASP_Best,GRASP_Iter,KnownBest\n";
 
-    for (size_t i = 0; i < names.size(); ++i)
+    for (int idx = 0; idx < (int)names.size(); ++idx)
     {
-        string id = names[i];
-        string path = "./input/" + id + ".rud";
-        freopen(path.c_str(), "r", stdin);
-
+        // --- read graph ---
+        string id = names[idx];
+        freopen(("./input/" + id + ".rud").c_str(), "r", stdin);
         int n, m;
         cin >> n >> m;
         Graph g(n);
-        for (int e = 0; e < m; ++e)
+        for (int i = 0; i < m; i++)
         {
             int u, v, w;
             cin >> u >> v >> w;
             g.addEdge(u, v, w);
         }
 
-        // 1) Randomized-1 (single trial average)
-        double randVal = randomized(g, 1);
+        // 1) Randomized-1
+        double randVal = randomized(g, RAND_ITERS);
 
         // 2) Greedy-1
         auto greedyP = greedyMaxCut(g, n);
-        auto adj = g.getEdge();
-        auto adjwt = g.getWeights();
-        int greedyVal = calculate_cut_weight(greedyP.first, greedyP.second, adj, adjwt, g.getSize());
+        int greedyVal = calculate_cut_weight(greedyP.first,
+                                             greedyP.second,
+                                             g.getEdge(),
+                                             g.getWeights(),
+                                             n);
 
-        // 3) Local-1: apply local_search on greedy
-        vector<bool> X = greedyP.first, Y = greedyP.second;
-        auto localP = local_search(X, Y, g);
-        int localVal = calculate_cut_weight(localP.first, localP.second, adj, adjwt, g.getSize());
+        // 3) Simple Local (multi-restart)
+        int bestLocalVal = numeric_limits<int>::min();
+        int bestLocalIter = -1;
+        for (int it = 1; it <= LOCAL_ITERS; ++it)
+        {
+            // start from greedy each time
+            auto startP = greedyMaxCut(g, n);
+            auto localP = local_search(startP.first,
+                                       startP.second,
+                                       g);
+            int val = calculate_cut_weight(localP.first,
+                                           localP.second,
+                                           g.getEdge(),
+                                           g.getWeights(),
+                                           n);
+            if (val > bestLocalVal)
+            {
+                bestLocalVal = val;
+                bestLocalIter = it;
+            }
+        }
 
-        // 4) GRASP-1 (single iteration)
-        int graspVal = grasp(1, g);
+        // 4) GRASP (multi-iteration)
+        int bestGraspVal = numeric_limits<int>::min();
+        int bestGraspIter = -1;
+        for (int it = 1; it <= GRASP_ITERS; ++it)
+        {
+            int val = grasp(1, g); // one GRASP iteration returns w(x)
+            if (val > bestGraspVal)
+            {
+                bestGraspVal = val;
+                bestGraspIter = it;
+            }
+        }
 
-        // Write CSV line
+        // 5) write CSV
         csv << id << ","
             << n << ","
             << m << ","
             << randVal << ","
             << greedyVal << ","
-            << localVal << ","
-            << graspVal << ","
-            << knownBest[i] << "\n";
+            << bestLocalVal << ","
+            << LOCAL_ITERS << ","
+            << bestGraspVal << ","
+            << GRASP_ITERS << ","
+            << known[idx]
+            << "\n";
     }
 
     csv.close();
-    cout << "Report written to report.csv\n";
+    cout << "Done! report.csv generated.\n";
     return 0;
 }

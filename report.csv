@@ -1,2 +1,2 @@
-Name,|V|,|E|,Randomized-1,Greedy-1,Local-1,GRASP-1,KnownBest
-G1,800,19176,9567,10956,11254,11322,12078
+Name,|V|,|E|,Rand1,Greedy1,Local1_Best,Local1_Iter,GRASP_Best,GRASP_Iter,KnownBest
+G1,800,19176,9567,10956,11254,10,11392,5,12078
