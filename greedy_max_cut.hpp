@@ -52,6 +52,7 @@ pair<set<int>,set<int>> greedyMaxCut(Graph &g, int V)
     // 10:18 - 10:35
 
     // compute wx and wy
+    //wx is, if a node is in X, the weight added extra
     for (auto x : U)
     {
         int w_x = 0;
