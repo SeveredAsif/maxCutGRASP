@@ -1,3 +1,5 @@
+//1 based correction 5:31- 
+
 #pragma once
 #include <list>
 using namespace std;
@@ -28,11 +30,11 @@ public:
     }
     void addEdge(int u, int v, int weight)
     {
-        adj[u].push_back(v);              // Add v to u’s list.
-        adj_weights[u].push_back(weight); // Add the weight of the path as well.
+        adj[u-1].push_back(v-1);              // Add v to u’s list.
+        adj_weights[u-1].push_back(weight); // Add the weight of the path as well.
 
-        adj[v].push_back(u);              // Add u to v’s list.
-        adj_weights[v].push_back(weight); // Add the weight of the path as well.
+        adj[v-1].push_back(u-1);              // Add u to v’s list.
+        adj_weights[v-1].push_back(weight); // Add the weight of the path as well.
     }
     void print()
     {
