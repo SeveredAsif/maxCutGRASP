@@ -8,7 +8,7 @@ using namespace chrono;
 
 int main()
 {
-    ofstream outputFile("output50Iterations(alpha=0.5,rcl_based).txt");
+    ofstream outputFile("output5Iterations(alpha=0.5,rcl_based_ultra_improved_local_limited50).txt");
 
     // Record the ultimate start time
     auto ultimate_start = system_clock::now();
@@ -17,7 +17,7 @@ int main()
 
     outputFile << "Start Time: " << put_time(start_tm, "%H:%M:%S") << endl;
 
-    for (int graphNum = 1; graphNum <= 54; ++graphNum)
+    for (int graphNum = 1; graphNum <= 3; ++graphNum)
     {
         string fileName = "./input/g" + to_string(graphNum) + ".rud";
         freopen(fileName.c_str(), "r", stdin);
@@ -36,7 +36,7 @@ int main()
         // Record graph start time
         auto graph_start = high_resolution_clock::now();
 
-        int ans = grasp(50, g);  // assuming grasp returns int (the solution value)
+        int ans = grasp(5, g);  // assuming grasp returns int (the solution value)
 
         // Record graph end time
         auto graph_end = high_resolution_clock::now();

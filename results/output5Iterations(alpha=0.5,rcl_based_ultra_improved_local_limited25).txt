@@ -1,0 +1,2 @@
+Start Time: 10:40:31
+Graph 1: Solution = 11160, Time = 1.825 seconds

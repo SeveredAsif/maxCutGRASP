@@ -1,0 +1,2 @@
+Start Time: 10:34:44
+Graph 1: Solution = 11384, Time = 3.161 seconds //improved from 7 sec to 3 sec after improving RCL 

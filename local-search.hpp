@@ -35,7 +35,7 @@ pair<int, int> calculateSigma(int v, list<int> *&adj, list<int> *&adjWeights, ve
     return {inSum, outSum};
 }
 
-pair<pair<vector<bool>,vector<bool>>,int> local_search(vector<bool> &X, vector<bool> &Y, Graph &g)
+pair<pair<vector<bool>, vector<bool>>, int> local_search(vector<bool> &X, vector<bool> &Y, Graph &g)
 {
     // vector<bool> S(g.getSize(), false);
     // vector<bool> S_p(g.getSize(), false);
@@ -83,6 +83,7 @@ pair<pair<vector<bool>,vector<bool>>,int> local_search(vector<bool> &X, vector<b
                     is_S = true;
                 }
                 hasImproved = true;
+                // cout << "local search loop:" << count << " max :" << max << endl;
             }
         }
 
@@ -103,6 +104,7 @@ pair<pair<vector<bool>,vector<bool>>,int> local_search(vector<bool> &X, vector<b
                     is_S = false;
                 }
                 hasImproved = true;
+                // cout << "local search loop:" << count << " max :" << max << endl;
             }
         }
 
@@ -126,7 +128,7 @@ pair<pair<vector<bool>,vector<bool>>,int> local_search(vector<bool> &X, vector<b
     }
 
     // now i have the refined S and S' cut
-    return {{X, Y},count};
+    return {{X, Y}, count};
 }
 
 #endif

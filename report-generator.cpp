@@ -30,14 +30,14 @@ int main()
         1560, 1537, 1541, 8000, 7996, 8009,
         7027, 7022, 7020, 6000, 6000, 5988};
 
-    constexpr int RAND_ITERS = 1;   // number of randomized runs
+    constexpr int RAND_ITERS = 1; // number of randomized runs
     // constexpr int LOCAL_ITERS = 5;  // multi-restart local-search
-    constexpr int GRASP_ITERS = 5; // GRASP iterations
+    constexpr int GRASP_ITERS = 25; // GRASP iterations
     int localiter = 0;
 
-    ofstream csv("2105131reportSemiGreedyAdded.csv");
+    ofstream csv("2105131FINAL.csv");
     csv << "Name,|V|,|E|,"
-           "Rand1,Greedy1,SemiGreedy,Local1_Best,Local1_Iter,GRASP_Best,GRASP_Iter,KnownBest\n";
+           "Rand1,Greedy1,SemiGreedy1,Local1_Average,Local1_Iter,Local1AvgLoop,GRASP_Iter,GRASP_Best,KnownBest\n";
 
     for (int idx = 0; idx < (int)names.size(); ++idx)
     {
@@ -75,33 +75,62 @@ int main()
         auto greedyTime = chrono::duration_cast<ms>(t3 - t2).count();
         cout << id << ",Greedy," << greedyTime << "ms\n";
 
-        //semi-greedy
+        // semi-greedy
         auto tsemiStart = Clock::now();
         auto semigreedyVal = semiGreedy(g);
         auto tsemiEnd = Clock::now();
         auto semigreedyTime = chrono::duration_cast<ms>(tsemiEnd - tsemiStart).count();
         cout << id << ",SemiGreedy," << semigreedyTime << "ms\n";
 
-        // 3) Simple Local (multi-restart)
-        auto t4 = Clock::now();
-        int bestLocalVal = numeric_limits<int>::min();
-        int bestLocalIter = -1;
+        // 3) Simple Local (multi-restart, averaged over 5 runs)
+        int RESTARTS = 5;
+        int avgBestIter = 0;
 
-        auto startP = greedyMaxCut(g, n);
-        auto localP = local_search(startP.first,
-                                   startP.second,
-                                   g);
-        localiter = localP.second;
-        bestLocalVal = calculate_cut_weight(
-            localP.first.first,
-            localP.first.second,
-            g.getEdge(),
-            g.getWeights(),
-            n);
+        long long totalTime = 0;
+        long long totalValue = 0;
+        long long totalIter = 0;
 
-        auto t5 = Clock::now();
-        auto localTime = chrono::duration_cast<ms>(t5 - t4).count();
-        cout << id << ",LocalSearch," << localTime << "ms\n";
+        for (int run = 0; run < RESTARTS; ++run)
+        {
+            auto t4 = Clock::now();
+
+            // 1) start from a greedy solution
+            auto startP = rcl_algorithm(g,g.getSize(),0.5);
+
+            // 2) improve using local search
+            auto localP = local_search(startP.first,
+                                       startP.second,
+                                       g);
+
+            // record how many local iterations it took
+            int thisIter = localP.second;
+
+            // evaluate the cut weight
+            int thisVal = calculate_cut_weight(
+                localP.first.first,
+                localP.first.second,
+                g.getEdge(),
+                g.getWeights(),
+                n);
+
+            auto t5 = Clock::now();
+            auto thisTime = chrono::duration_cast<ms>(t5 - t4).count();
+
+            // accumulate
+            totalTime += thisTime;
+            totalValue += thisVal;
+            totalIter += thisIter;
+
+            // optional per-run logging
+            cout << "Run " << (run + 1)
+                 << ": LocalSearch = "
+                 << thisVal << " (iter=" << thisIter << "), "
+                 << thisTime << "ms\n";
+        }
+
+        // compute average
+        double LocalavgValue = double(totalValue) / RESTARTS;
+        avgBestIter = totalIter / RESTARTS;
 
         // 4) GRASP (multi-iteration)
         auto t6 = Clock::now();
@@ -121,10 +150,11 @@ int main()
             << randVal << ","
             << greedyVal << ","
             << semigreedyVal << ","
-            << bestLocalVal << ","
-            << localiter << ","
-            << bestGraspVal << ","
+            << LocalavgValue << ","
+            << RESTARTS << ","
+            << avgBestIter << ","
             << GRASP_ITERS << ","
+            << bestGraspVal << ","
             << known[idx] << "\n";
         // << randTime      << ","
         // << greedyTime    << ","

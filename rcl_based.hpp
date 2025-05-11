@@ -10,52 +10,18 @@
 #include <algorithm>
 #include <vector>
 
-
-// source: https://stackoverflow.com/questions/3052788/how-to-select-a-random-element-in-stdset
-template <typename S>
-auto select_random(const S &s, size_t n)
+void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adjWeights, vector<bool> &U, int V, int alpha, int &counter, vector<int> &sigmaX, vector<int> &sigmaY)
 {
-    auto it = std::begin(s);
-    // 'advance' the iterator n times
-    std::advance(it, n);
-    return it;
-}
+    // auto t_start = high_resolution_clock::now();
+    // auto t_sigma_start = high_resolution_clock::now();
 
-void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adjWeights, vector<bool> &U, int V, int alpha, int &counter)
-{
-    //auto t_start = high_resolution_clock::now();
-    //auto t_sigma_start = high_resolution_clock::now();
-    vector<int> sigmaX(V, 0);
-    vector<int> sigmaY(V, 0);
-    for (int v = 0; v < V; ++v)
-    {
-        if (!U[v])
-            continue; // Skip vertices not in U
-        auto itr = adj[v].begin();
-        auto ptr = adjWeights[v].begin();
-        while (itr != adj[v].end() && ptr != adjWeights[v].end())
-        {
-            if (Y[*itr])
-            {
-                sigmaY[v] += (*ptr);
-            }
-
-            // computing sigmaY if the element is in X
-            if (X[*itr])
-            {
-                sigmaX[v] += (*ptr);
-            }
-            ++itr;
-            ++ptr;
-        }
-    }
     // wmin and wmax
-    //auto t_sigma_end = high_resolution_clock::now();
+    // auto t_sigma_end = high_resolution_clock::now();
     // cout << "Time for sigma computation: "
     //     << duration<double>(t_sigma_end - t_sigma_start).count() << "s\n";
 
     // wmin and wmax computation
-    //auto t_minmax_start = high_resolution_clock::now();
+    // auto t_minmax_start = high_resolution_clock::now();
 
     int wmin = +1e9, wmax = -1e9;
     for (int v = 0; v < V; ++v)
@@ -78,12 +44,12 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
     // double miu = wmin + alpha * (wmax - wmin);
     // calculate greedyValue
     // Build RCL as a vector for O(1) random access
-    //auto t_minmax_end = high_resolution_clock::now();
+    // auto t_minmax_end = high_resolution_clock::now();
     // cout << "Time for wmin/wmax computation: "
     //     << duration<double>(t_minmax_end - t_minmax_start).count() << "s\n";
 
     // build RCL vector
-    //auto t_rcl_start = high_resolution_clock::now();
+    // auto t_rcl_start = high_resolution_clock::now();
     vector<int> rclVec;
     for (int v = 0; v < V; ++v)
     {
@@ -92,9 +58,9 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
             rclVec.push_back(v);
         }
     }
-    //auto t_rcl_end = high_resolution_clock::now();
-    // cout << "Time for RCL build: "
-    //      << duration<double>(t_rcl_end - t_rcl_start).count() << "s\n";
+    // auto t_rcl_end = high_resolution_clock::now();
+    //  cout << "Time for RCL build: "
+    //       << duration<double>(t_rcl_end - t_rcl_start).count() << "s\n";
     if (rclVec.empty())
         return;
 
@@ -110,11 +76,12 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
     // }
 
     // choose one of the elements from the rcl set
-    //auto t_choose_start = high_resolution_clock::now();
+    // auto t_choose_start = high_resolution_clock::now();
     int choose = rand() % rclVec.size();
     int chosenItem = rclVec[choose];
 
     // compare this chosenItem value in sigmaX and sigmaY
+    bool choseX = false;
     if (sigmaX[chosenItem] >= sigmaY[chosenItem])
     {
         Y[chosenItem] = true;
@@ -122,18 +89,47 @@ void rclBased(vector<bool> &X, vector<bool> &Y, list<int> *&adj, list<int> *&adj
     else
     {
         X[chosenItem] = true;
+        choseX = true;
     }
 
     U[chosenItem] = false;
     counter--;
-    //auto t_choose_end = high_resolution_clock::now();
-    // cout << "Time for selection and update: "
-    //     << duration<double>(t_choose_end - t_choose_start).count() << "s\n";
 
-    //auto t_end = high_resolution_clock::now();
-    // cout << "Total iteration time: "
-    //     << duration<double>(t_end - t_start).count() << "s\n";
-    // cout << "------------------------------------\n";
+    for (int v = 0; v < V; ++v)
+    {
+        if (!U[v])
+            continue;
+
+        // Check if v is adjacent to chosenItem
+        auto itr = find(adj[v].begin(), adj[v].end(), chosenItem);
+        if (itr != adj[v].end())
+        {
+            // Find weight
+            auto wPos = adjWeights[v].begin();
+            advance(wPos, distance(adj[v].begin(), itr));
+            int weight = *wPos;
+
+            // Update sigma values based on where chosenItem was placed
+            // if i put it in X, then the sigmaX of its neighbour will increase,because sigmaX = sum of weight to its neighbours if v is in Y
+            if (choseX)
+            {
+                sigmaX[v] += weight;
+            }
+            else
+            {
+                sigmaY[v] += weight;
+            }
+        }
+    }
+
+    // auto t_choose_end = high_resolution_clock::now();
+    //  cout << "Time for selection and update: "
+    //      << duration<double>(t_choose_end - t_choose_start).count() << "s\n";
+
+    // auto t_end = high_resolution_clock::now();
+    //  cout << "Total iteration time: "
+    //      << duration<double>(t_end - t_start).count() << "s\n";
+    //  cout << "------------------------------------\n";
 }
 
 pair<vector<bool>, vector<bool>> rcl_algorithm(Graph &g, int V, int alpha)
@@ -175,22 +171,53 @@ pair<vector<bool>, vector<bool>> rcl_algorithm(Graph &g, int V, int alpha)
 
     // initialize U
     // set<int> U = {};
-    vector<bool> U(V, false);
-    int U_true_counter = 0;
-    for (int i = 0; i < V; i++)
+    // vector<bool> U(V, false);
+    // int U_true_counter = 0;
+    // for (int i = 0; i < V; i++)
+    // {
+    //     // if i is not u, i is not v, push it to set U
+    //     if (i != u && i != v)
+    //     {
+    //         // U.insert(i);
+    //         U[i] = true;
+    //         U_true_counter++;
+    //     }
+    // }
+    vector<bool> U(V, true);
+    U[u] = false;
+    U[v] = false;
+    int U_true_counter = V - 2;
+
+    // calculating sigmaX and sigmaY before going to loop
+
+    vector<int> sigmaX(V, 0);
+    vector<int> sigmaY(V, 0);
+    for (int v = 0; v < V; ++v)
     {
-        // if i is not u, i is not v, push it to set U
-        if (i != u && i != v)
+        if (!U[v])
+            continue; // Skip vertices not in U
+        auto itr = adj[v].begin();
+        auto ptr = adjWeights[v].begin();
+        while (itr != adj[v].end() && ptr != adjWeights[v].end())
         {
-            // U.insert(i);
-            U[i] = true;
-            U_true_counter++;
+            if (Y[*itr])
+            {
+                sigmaY[v] += (*ptr);
+            }
+
+            // computing sigmaY if the element is in X
+            if (X[*itr])
+            {
+                sigmaX[v] += (*ptr);
+            }
+            ++itr;
+            ++ptr;
         }
     }
 
     while (U_true_counter > 0)
     {
-        rclBased(X, Y, adj, adjWeights, U, V, alpha, U_true_counter);
+        rclBased(X, Y, adj, adjWeights, U, V, alpha, U_true_counter, sigmaX, sigmaY);
     }
     ans = {X, Y};
     return ans;
